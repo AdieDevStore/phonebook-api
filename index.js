@@ -35,9 +35,9 @@ const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint'}) 
 }
 
+app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :url :response-time ms :body'))
-app.use(cors)
 app.use(express.static('dist'))
 
 // data hoes here for now 
@@ -133,6 +133,10 @@ app.delete('/api/phonebook/:id', (req, res) => {
 
   res.status(204).end()
 
+})
+
+app.get('/', (request, response) => {
+  response.send('Hellow World')
 })
 
 // middleware position is important
