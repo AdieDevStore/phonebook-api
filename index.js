@@ -35,7 +35,7 @@ const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint'}) 
 }
 
-app.use(cors())
+
 app.use(express.json())
 app.use(morgan(':method :url :response-time ms :body'))
 app.use(express.static('dist'))
@@ -105,24 +105,12 @@ app.post('/api/phonebook', (req, res) => {
     number: number
   }
 
-  if ( newNumber.name || newNumber.number === undefined ) {
-    return res.status(406)
-      .json({ message: 'Data is incomplete' })
-      .end()
+  if (!newNumber.name || !newNumber.number) {
+    return res.status(404).json({message: "No date received"})
+  } else {
+    phonebook.concat(newNumber)
+    return res.status(203).json(newNumber)
   }
-
-  phonebook.forEach(pb => {
-    if (pb.name === newNumber.name) {
-      return res.status(404)
-      .json( {message: "The user name already exists" })
-      .end()
-
-    } else {
-      phonebook = phonebook.concat(newNumber)
-      return res.status(201).json(newNumber)
-
-    }
-  })
 
 })
 
@@ -133,10 +121,6 @@ app.delete('/api/phonebook/:id', (req, res) => {
 
   res.status(204).end()
 
-})
-
-app.get('/', (request, response) => {
-  response.send('Hellow World')
 })
 
 // middleware position is important
