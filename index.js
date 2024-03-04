@@ -111,6 +111,7 @@ app.post('/api/phonebook', (req, res) => {
     return res.status(404).json({message: "No date received"})
   } else {
     phonebook.concat(newNumber)
+    console.log(phonebook)
     return res.status(203).json(newNumber)
   }
 
@@ -122,7 +123,6 @@ app.delete('/api/phonebook/:id', (req, res) => {
   phonebook = phonebook.filter(pb => pb.id !== id)
 
   res.status(204)
-    .json(phonebook)
     .end()
 
 })
