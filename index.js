@@ -121,9 +121,10 @@ app.delete('/api/phonebook/:id', (req, res) => {
   const id = req.params.id
 
   phonebook = phonebook.filter(pb => pb.id !== id)
+  console.log(phonebook)
 
   res.status(204)
-    .end()
+    
 
 })
 
