@@ -37,8 +37,10 @@ const unknownEndpoint = (req, res) => {
 
 
 app.use(express.json())
+app.use(cors())
 app.use(morgan(':method :url :response-time ms :body'))
 app.use(express.static('dist'))
+
 
 // data hoes here for now 
 let phonebook = [
