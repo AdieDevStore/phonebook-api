@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require("morgan")
 const cors = require('cors')
+const Contact = require('./mongo.cjs')
 
 // morgan config
 
@@ -35,97 +37,49 @@ const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint'}) 
 }
 
-
 app.use(express.json())
 app.use(cors())
 app.use(morgan(':method :url :response-time ms :body'))
 app.use(express.static('dist'))
 
-
-// data hoes here for now 
-let phonebook = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
-// basic routes
-
-app.get('/info', (req, res) => {
-  const d = Date()
-  const date = d.toLocaleString('en-US')
-
-  res.send(`<p>Phonebook has info for ${phonebook.length} people <br/> ${date}</p>`)
-})
-
 app.get('/api/phonebook', (req, res) => {
-  res.json(phonebook)
-})
-
-app.get('/api/phonebook/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const phoneNumber = phonebook.find(pb => {return pb.id === id})
-
-  if (phoneNumber) {
-    res.json(phoneNumber)
-  } else {
-    res.status(404).end()
-  }
-
-})
-
-// generates random number id 
-const generateID = (min, max) => {
   
-  const id = Math.random() * (max - min)
-  return Math.round(id)
-}
+  Contact.find({})
+    .then(notes => {
+      res.status(200).json(notes)
+  })
 
-app.post('/api/phonebook', (req, res) => {
-  const {name, number} = req.body
-  const id = generateID(0, 999)
-  const newNumber = {
-    id: id,
-    name: name, 
-    number: number
-  }
+})
 
-  if (!newNumber.name || !newNumber.number) {
-    return res.status(404).json({message: "No date received"})
+app.post('/api/phonebook', async (req, res) => {
+  const newContact = new Contact({
+    name: req.body.name,
+    number: req.body.number
+  })
+
+  if (!newContact.name || !newContact.number) {
+    res.status(412).json({msg: 'no data recevied'})
   } else {
-    phonebook.concat(newNumber)
-    console.log(phonebook)
-    return res.status(203).json(newNumber)
+    newContact.save()
+      .then(result => {
+        console.log(result)
+        res.status(203).json(newContact)
+      })
+      .catch(err => {
+        console.log('An error occured', err.message)
+        res.status(500)
+      })
   }
 
 })
 
-app.delete('/api/phonebook/:id', (req, res) => {
-  const id = req.params.id
-
-  phonebook = phonebook.filter(pb => pb.id !== id)
-  console.log(phonebook)
-
-  res.status(204)
-    
-
+app.delete('/api/phonebook/:id', async (req, res) => {
+  try {
+    await Contact.findByIdAndDelete(req.params.id)
+    res.sendStatus(204)
+  } catch (error) {
+    console.log(error)
+  }
 })
 
 // middleware position is important
