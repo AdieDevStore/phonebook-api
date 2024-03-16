@@ -10,35 +10,15 @@ morgan.token('body', req => {
   return JSON.stringify(req.body)
 })
 
-const logger = morgan(function (tokens, req, res) {
-  return [
-    tokens.method(req, res),
-    tokens.url(req, res),
-    tokens.status(req, res),
-    tokens.res(req, res, 'content-length'), '-',
-    tokens['response-time'](req, res), 'ms'
-  ].join(' ')
-})
-
 const app = express()
 const PORT = process.env.PORT || 3000
-
-// example of middleware 
-// now redundant - usiong Morgan
-const requestLogger = (req, res, next) => {
-  console.log('Method:', req.method)
-  console.log('Path:', req.path)
-  console.log('Body:', req.body)
-  console.log('---')
-  next()
-}
 
 const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint'}) 
 }
 
-app.use(express.json())
 app.use(cors())
+app.use(express.json())
 app.use(morgan(':method :url :response-time ms :body'))
 app.use(express.static('dist'))
 
@@ -71,6 +51,25 @@ app.post('/api/phonebook', async (req, res) => {
       })
   }
 
+})
+
+app.get('/api/phonebook/:id',(req, res) => {
+  Contact.findById(req.params.id)
+    .then(resp => {res.status(200).json(resp)})
+})
+
+app.patch('/api/phonebook/:id', (req, res) => {
+  const id = req.params.id
+  const contact = {
+    name: req.body.name, 
+    number: req.body.number
+  }
+
+  Contact.findByIdAndUpdate(id, contact, {new: true})
+    .then(response => {
+      res.status(203).json(response)
+    })
+    .catch(error => next(error))
 })
 
 app.delete('/api/phonebook/:id', async (req, res) => {
